@@ -54,6 +54,13 @@ type Config struct {
 	Password string
 	DB       int
 	Sentinel *Sentinel
+
+	// PoolSize is the size of the connection pool per available CPU. By default, 10 connections.
+	// When more connections are needed, new connections will be allocated with a maximum of MaxActiveConns.
+	PoolSize int
+	// MaxActiveConns is the maximum number of connections allocated by the pool at a given time.
+	// When zero, there is no limit on the number of connections in the pool.
+	MaxActiveConns int
 }
 
 // Sentinel holds the Redis Sentinel configuration.
@@ -139,6 +146,8 @@ func newClient(endpoints []string, options *Config) (redis.UniversalClient, erro
 			WriteTimeout:            30 * time.Second,
 			ContextTimeoutEnabled:   true,
 			TLSConfig:               options.TLS,
+			PoolSize:                options.PoolSize,
+			MaxActiveConns:          options.MaxActiveConns,
 		}
 
 		if options.Sentinel.ClusterClient {
@@ -164,6 +173,8 @@ func newClient(endpoints []string, options *Config) (redis.UniversalClient, erro
 		opt.Username = options.Username
 		opt.Password = options.Password
 		opt.DB = options.DB
+		opt.PoolSize = options.PoolSize
+		opt.MaxActiveConns = options.MaxActiveConns
 	}
 
 	// TODO: use *redis.ClusterClient if we support multiple endpoints.
